@@ -1,8 +1,17 @@
-# 🔍 LocalRAG AI Knowledge Assistant - Streamlit Deployment
+# 🔍 LocalRAG AI Knowledge Assistant - Academic Research Project
 
-**Enterprise Document Intelligence Platform**
+**Intelligent Document Analysis and Question Answering System**
 
-A streamlined version of the LocalRAG system optimized for Streamlit Cloud deployment.
+A streamlined version of the LocalRAG system optimized for Streamlit Cloud deployment, 
+designed for academic research and educational purposes.
+
+## 🎓 Academic Features
+
+- 📁 **Multi-format Document Processing**: PDF, TXT, DOCX, CSV, XLSX, MD, PPTX
+- 🤖 **AI-Powered Responses**: State-of-the-art language models for question answering
+- 🔍 **Vector Search**: Advanced similarity search using FAISS technology
+- 📊 **Research Analytics**: Document collection insights and statistics
+- 🌐 **Web Interface**: User-friendly interface for research collaboration
 
 ## 🚀 Quick Deployment
 
@@ -16,13 +25,6 @@ A streamlined version of the LocalRAG system optimized for Streamlit Cloud deplo
    - Visit [share.streamlit.io](https://share.streamlit.io)
    - Deploy from your repository
    - Add `GROQ_API_KEY` to app secrets
-
-## 🌟 Features
-
-- 📁 **Multi-format Document Processing**: PDF, TXT, DOCX, CSV, XLSX, MD, PPTX
-- 🤖 **AI-Powered Responses**: Groq API integration with customizable models
-- 🔍 **Vector Search**: FAISS-powered similarity search
-- 📊 **Analytics Dashboard**: Document collection insights
 
 ## 📋 Requirements
 
