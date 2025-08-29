@@ -1,107 +1,99 @@
 """
-LocalRAG AI Knowledge Assistant - Streamlit Cloud Deployment
+LocalRAG AI Knowledge Assistant - Streamlit Cloud Version
 
-A unified Streamlit application that combines API functionality and web interface
-for deployment on Streamlit Cloud.
+A version optimized for Streamlit Cloud deployment with robust error handling.
 """
 
 import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import List, Dict, Any, Optional
 import streamlit as st
 
-# Debug information
-st.sidebar.write("Python version:", sys.version)
-st.sidebar.write("Current directory:", Path.cwd())
-
-# Add paths for imports - multiple strategies for different environments
-current_dir = Path(__file__).parent.resolve()
-src_dir = current_dir / "src"
-core_dir = src_dir / "core"
-
-# Add all possible paths
-paths_to_add = [str(current_dir), str(src_dir), str(core_dir)]
-for path in paths_to_add:
-    if path not in sys.path:
-        sys.path.insert(0, path)
-
-st.sidebar.write("Python paths:", sys.path[:5])  # Show first 5 paths
-
-# Robust import system with clear error messages
-def safe_import(module_name, import_path):
-    """Safely import a module with detailed error reporting."""
-    try:
-        if import_path.startswith("from"):
-            exec(import_path)
-            return True
-        else:
-            __import__(import_path)
-            return True
-    except Exception as e:
-        st.sidebar.error(f"Failed to import {module_name}: {str(e)}")
-        return False
-
-# Test basic imports first
-st.sidebar.subheader("Import Status")
-
-# Test core Python imports
-basic_imports = [
-    ("os", "import os"),
-    ("sys", "import sys"),
-    ("json", "import json"),
-    ("tempfile", "import tempfile"),
-]
-
-for module_name, import_stmt in basic_imports:
-    if safe_import(module_name, import_stmt):
-        st.sidebar.success(f"✅ {module_name}")
-
-# Try to import our core modules
-st.sidebar.subheader("Core Module Status")
-
-core_modules = [
-    ("document_processor", "from src.core.document_processor import DocumentProcessor"),
-    ("vector_store", "from src.core.vector_store import FAISSVectorStore"),
-    ("llm_handler", "from src.core.llm_handler import create_llm_handler"),
-]
-
-import_success = True
-for module_name, import_stmt in core_modules:
-    if not safe_import(module_name, import_stmt):
-        import_success = False
-
-if not import_success:
-    st.error("""
-    ❌ Core module import failed!
+# Robust path setup for Streamlit Cloud
+def setup_paths():
+    """Set up Python paths for reliable imports on Streamlit Cloud."""
+    current_dir = Path(__file__).parent.resolve()
+    src_path = current_dir / "src"
+    core_path = src_path / "core"
     
-    This typically happens when deploying to Streamlit Cloud due to path issues.
+    # Add all possible paths
+    paths_to_add = [str(current_dir), str(src_path), str(core_path)]
+    for path in paths_to_add:
+        if path not in sys.path:
+            sys.path.insert(0, path)
     
-    Solutions:
-    1. Ensure all source files are in your GitHub repository
-    2. Check that the directory structure matches:
-       ```
-       your-repo/
-       ├── streamlit_app.py
-       ├── src/
-       │   └── core/
-       │       ├── document_processor.py
-       │       ├── vector_store.py
-       │       └── llm_handler.py
-       └── requirements.txt
-       ```
-    3. If problems persist, use the simplified version (streamlit_app_simple.py)
-    """)
-    st.stop()
+    return current_dir, src_path, core_path
 
-# If we get here, imports worked - proceed with normal imports
+current_dir, src_path, core_path = setup_paths()
+
+# Robust import system for Streamlit Cloud
+def import_core_modules():
+    """Import core modules with multiple fallback strategies for Streamlit Cloud."""
+    modules = {}
+    
+    # Try different import strategies
+    import_strategies = [
+        # Strategy 1: Standard imports
+        lambda: __import__('src.core.document_processor', fromlist=['DocumentProcessor', 'process_directory']),
+        lambda: __import__('src.core.vector_store', fromlist=['FAISSVectorStore']),
+        lambda: __import__('src.core.llm_handler', fromlist=['LLMHandler', 'create_llm_handler']),
+        
+        # Strategy 2: Direct core imports
+        lambda: __import__('core.document_processor', fromlist=['DocumentProcessor', 'process_directory']),
+        lambda: __import__('core.vector_store', fromlist=['FAISSVectorStore']),
+        lambda: __import__('core.llm_handler', fromlist=['LLMHandler', 'create_llm_handler']),
+    ]
+    
+    module_names = [
+        'document_processor',
+        'vector_store', 
+        'llm_handler'
+    ]
+    
+    for i, (module_name, strategy) in enumerate(zip(module_names, import_strategies[::2] + import_strategies[1::2])):
+        try:
+            module = strategy()
+            modules[module_name] = module
+            st.sidebar.success(f"✅ {module_name} imported successfully")
+        except Exception as e:
+            st.sidebar.warning(f"⚠️ {module_name} import attempt {i//2 + 1}: {str(e)[:50]}...")
+            if i == len(import_strategies) - 1:  # Last attempt
+                st.error(f"""
+                ❌ Failed to import {module_name} after all attempts.
+                
+                Common solutions:
+                1. Ensure all source files are in your GitHub repository
+                2. Check directory structure matches requirements
+                3. Verify requirements.txt includes all dependencies
+                4. Try the simplified version for debugging
+                """)
+                st.stop()
+    
+    return modules
+
+# Try to import modules
 try:
-    from src.core.document_processor import DocumentProcessor, process_directory
-    from src.core.vector_store import FAISSVectorStore
-    from src.core.llm_handler import LLMHandler, create_llm_handler
-except ImportError as e:
-    st.error(f"Unexpected import error: {str(e)}")
-    st.stop()
+    with st.spinner("Initializing core modules..."):
+        modules = import_core_modules()
+        document_processor_module = modules['document_processor']
+        vector_store_module = modules['vector_store']
+        llm_handler_module = modules['llm_handler']
+        
+        # Extract classes and functions
+        DocumentProcessor = getattr(document_processor_module, 'DocumentProcessor', None)
+        process_directory = getattr(document_processor_module, 'process_directory', None)
+        FAISSVectorStore = getattr(vector_store_module, 'FAISSVectorStore', None)
+        LLMHandler = getattr(llm_handler_module, 'LLMHandler', None)
+        create_llm_handler = getattr(llm_handler_module, 'create_llm_handler', None)
+        
+except Exception as e:
+    st.error(f"Critical import error: {str(e)}")
+    st.info("Using fallback mode with limited functionality...")
+    DocumentProcessor = None
+    FAISSVectorStore = None
+    create_llm_handler = None
 
 # Load environment variables
 try:
@@ -122,16 +114,47 @@ st.set_page_config(
         'About': """
         # 🔍 LocalRAG AI Knowledge Assistant
         
-        **Academic Research Project**
+        **Academic Research Project - Streamlit Cloud Version**
         
-        A Retrieval-Augmented Generation (RAG) system for intelligent document analysis 
-        and question answering using state-of-the-art AI models.
-        
-        This research project demonstrates the application of AI technologies for 
-        academic document processing and knowledge extraction.
+        A Retrieval-Augmented Generation (RAG) system optimized for cloud deployment.
         """
     }
 )
+
+# Display system information
+st.sidebar.subheader("Deployment Info")
+st.sidebar.write("Environment:", "Streamlit Cloud")
+st.sidebar.write("Python paths:", len(sys.path))
+
+# Check if core modules loaded
+if not all([DocumentProcessor, FAISSVectorStore, create_llm_handler]):
+    st.warning("""
+    ⚠️ Running in limited mode due to import issues.
+    
+    Full functionality requires successful import of core modules.
+    If deploying to Streamlit Cloud, ensure:
+    1. All source files are in your repository
+    2. Directory structure is correct
+    3. requirements.txt includes all dependencies
+    """)
+    
+    # Provide a simple demo interface
+    st.title("🔍 LocalRAG AI Knowledge Assistant")
+    st.markdown("Academic Research Project - Streamlit Cloud Version")
+    
+    st.info("""
+    ## 🚀 Deployment Status
+    
+    The app structure is correct, but core modules need to be imported for full functionality.
+    
+    **Next steps:**
+    1. Verify all source files are in your GitHub repository
+    2. Check that `src/core/` directory contains all required modules
+    3. Ensure `requirements.txt` has all necessary dependencies
+    4. Refer to STREAMLIT_TROUBLESHOOTING.md for detailed help
+    """)
+    
+    st.stop()
 
 # Initialize session state
 if 'initialized' not in st.session_state:
@@ -170,7 +193,7 @@ def main():
             🔍 LocalRAG AI Knowledge Assistant
         </h1>
         <p style="font-size: 1.2rem; color: #666; margin-top: 5px;">
-            Academic Research Project - Document Intelligence with AI
+            Academic Research Project - Streamlit Cloud Version
         </p>
         <hr style="margin: 20px 0; border: 1px solid #e0e0e0;">
     </div>
