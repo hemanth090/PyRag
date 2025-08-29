@@ -36,11 +36,15 @@ st.set_page_config(
         'Get Help': 'https://github.com/localrag/localrag-ai',
         'Report a bug': 'https://github.com/localrag/localrag-ai/issues',
         'About': """
-        # 🔍 LocalRAG AI Knowledge Assistant v2.0
+        # 🔍 LocalRAG AI Knowledge Assistant
         
-        **Enterprise Document Intelligence Platform**
+        **Academic Research Project**
         
-        Upload documents and ask intelligent questions with AI-powered responses.
+        A Retrieval-Augmented Generation (RAG) system for intelligent document analysis 
+        and question answering using state-of-the-art AI models.
+        
+        This research project demonstrates the application of AI technologies for 
+        academic document processing and knowledge extraction.
         """
     }
 )
@@ -82,7 +86,7 @@ def main():
             🔍 LocalRAG AI Knowledge Assistant
         </h1>
         <p style="font-size: 1.2rem; color: #666; margin-top: 5px;">
-            Enterprise Document Intelligence Platform v2.0
+            Academic Research Project - Document Intelligence with AI
         </p>
         <hr style="margin: 20px 0; border: 1px solid #e0e0e0;">
     </div>
@@ -91,7 +95,7 @@ def main():
     st.markdown("""
     <div style="text-align: center; margin-bottom: 30px;">
         <p style="font-size: 1rem; color: #555;">
-            📁 Upload Documents • 🤖 Ask Intelligent Questions • 📊 Get AI-Powered Insights
+            📁 Upload Research Documents • 🤖 Ask Intelligent Questions • 📊 Get AI-Powered Insights
         </p>
     </div>
     """, unsafe_allow_html=True)
