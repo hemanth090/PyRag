@@ -16,21 +16,82 @@ from abc import ABC, abstractmethod
 import streamlit as st
 
 # Third-party imports with error handling
+missing_packages = []
+
 try:
     import numpy as np
+except ImportError as e:
+    missing_packages.append("numpy")
+
+try:
     import faiss
+except ImportError as e:
+    missing_packages.append("faiss-cpu")
+
+try:
     from sentence_transformers import SentenceTransformer
+except ImportError as e:
+    missing_packages.append("sentence-transformers")
+
+try:
     from groq import Groq
+except ImportError as e:
+    missing_packages.append("groq")
+
+try:
     import PyPDF2
+except ImportError as e:
+    missing_packages.append("PyPDF2")
+
+try:
     import pandas as pd
+except ImportError as e:
+    missing_packages.append("pandas")
+
+try:
     from docx import Document
+except ImportError as e:
+    missing_packages.append("python-docx")
+
+try:
     from pptx import Presentation
+except ImportError as e:
+    missing_packages.append("python-pptx")
+
+try:
     import markdown
+except ImportError as e:
+    missing_packages.append("markdown")
+
+# Load dotenv if available (optional)
+try:
     from dotenv import load_dotenv
     load_dotenv()
-except ImportError as e:
-    st.error(f"Missing dependencies: {str(e)}")
-    st.info("Please ensure all requirements are in requirements.txt")
+except ImportError:
+    pass
+
+# If any required packages are missing, show error and stop
+if missing_packages:
+    st.error("❌ Missing required dependencies:")
+    for pkg in missing_packages:
+        st.error(f"  • {pkg}")
+    
+    st.info(f"""
+    ### 🛠️ To fix this issue:
+    
+    1. **If running locally**:
+       ```bash
+       pip install {" ".join(missing_packages)}
+       ```
+    
+    2. **If deploying to Streamlit Cloud**:
+       Make sure your `requirements.txt` includes:
+       ```
+       {"\
+       ".join(missing_packages)}
+       ```
+    """)
+    
     st.stop()
 
 # ==================== CORE MODULES ====================
