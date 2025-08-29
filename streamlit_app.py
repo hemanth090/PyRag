@@ -8,23 +8,107 @@ for deployment on Streamlit Cloud.
 import os
 import sys
 import tempfile
-import json
-import pickle
 from pathlib import Path
-from typing import List, Dict, Any, Optional
 import streamlit as st
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Debug information
+st.sidebar.write("Python version:", sys.version)
+st.sidebar.write("Current directory:", Path.cwd())
 
-# Core imports
-from src.core.document_processor import DocumentProcessor, process_directory
-from src.core.vector_store import FAISSVectorStore
-from src.core.llm_handler import LLMHandler, create_llm_handler
+# Add paths for imports - multiple strategies for different environments
+current_dir = Path(__file__).parent.resolve()
+src_dir = current_dir / "src"
+core_dir = src_dir / "core"
+
+# Add all possible paths
+paths_to_add = [str(current_dir), str(src_dir), str(core_dir)]
+for path in paths_to_add:
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+st.sidebar.write("Python paths:", sys.path[:5])  # Show first 5 paths
+
+# Robust import system with clear error messages
+def safe_import(module_name, import_path):
+    """Safely import a module with detailed error reporting."""
+    try:
+        if import_path.startswith("from"):
+            exec(import_path)
+            return True
+        else:
+            __import__(import_path)
+            return True
+    except Exception as e:
+        st.sidebar.error(f"Failed to import {module_name}: {str(e)}")
+        return False
+
+# Test basic imports first
+st.sidebar.subheader("Import Status")
+
+# Test core Python imports
+basic_imports = [
+    ("os", "import os"),
+    ("sys", "import sys"),
+    ("json", "import json"),
+    ("tempfile", "import tempfile"),
+]
+
+for module_name, import_stmt in basic_imports:
+    if safe_import(module_name, import_stmt):
+        st.sidebar.success(f"✅ {module_name}")
+
+# Try to import our core modules
+st.sidebar.subheader("Core Module Status")
+
+core_modules = [
+    ("document_processor", "from src.core.document_processor import DocumentProcessor"),
+    ("vector_store", "from src.core.vector_store import FAISSVectorStore"),
+    ("llm_handler", "from src.core.llm_handler import create_llm_handler"),
+]
+
+import_success = True
+for module_name, import_stmt in core_modules:
+    if not safe_import(module_name, import_stmt):
+        import_success = False
+
+if not import_success:
+    st.error("""
+    ❌ Core module import failed!
+    
+    This typically happens when deploying to Streamlit Cloud due to path issues.
+    
+    Solutions:
+    1. Ensure all source files are in your GitHub repository
+    2. Check that the directory structure matches:
+       ```
+       your-repo/
+       ├── streamlit_app.py
+       ├── src/
+       │   └── core/
+       │       ├── document_processor.py
+       │       ├── vector_store.py
+       │       └── llm_handler.py
+       └── requirements.txt
+       ```
+    3. If problems persist, use the simplified version (streamlit_app_simple.py)
+    """)
+    st.stop()
+
+# If we get here, imports worked - proceed with normal imports
+try:
+    from src.core.document_processor import DocumentProcessor, process_directory
+    from src.core.vector_store import FAISSVectorStore
+    from src.core.llm_handler import LLMHandler, create_llm_handler
+except ImportError as e:
+    st.error(f"Unexpected import error: {str(e)}")
+    st.stop()
 
 # Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # Streamlit configuration
 st.set_page_config(
