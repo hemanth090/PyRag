@@ -1,8 +1,10 @@
-# LocalRAG AI Knowledge Assistant - Streamlit Cloud Dependencies
-# Streamlined for cloud deployment
+# LocalRAG AI Knowledge Assistant - Complete Dependencies
+# Works for both local development and Streamlit Cloud deployment
 
 # Core Framework Dependencies
 streamlit>=1.28.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
 sentence-transformers>=2.2.0
 transformers>=4.35.0
 torch>=2.6.0
@@ -22,3 +24,7 @@ markdown>=3.5.0
 
 # Configuration
 python-dotenv>=1.0.0
+
+# Web API Dependencies
+requests>=2.31.0
+pydantic>=2.5.0
